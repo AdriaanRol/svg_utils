@@ -1,5 +1,6 @@
 from lxml import etree
 from copy import deepcopy
+from . import util
 import codecs
 
 try:
@@ -211,6 +212,12 @@ class SVGFigure(object):
         self.root = etree.Element(SVG+"svg", nsmap=NSMAP)
         self.root.set("version", "1.1")
 
+        # Create a unique ID
+        if not hasattr(SVGFigure, 'maxid'):
+            SVGFigure.maxid = 0
+        self.id = SVGFigure.maxid + 1
+        SVGFigure.maxid = self.id
+
         self._width = 0
         self._height = 0
 
@@ -299,13 +306,16 @@ class SVGFigure(object):
         self.root.set('height', h)
 
 
-def fromfile(fname):
+def fromfile(fname, idprefix=None):
     """Open SVG figure from file.
 
     Parameters
     ----------
     fname : str
         name of the SVG file
+    idprefix : str
+        Optional prefix for ID of elements.
+        Prefix is determined automatically if not specified.
 
     Returns
     -------
@@ -317,6 +327,14 @@ def fromfile(fname):
         svg_file = etree.parse(fid)
 
     fig.root = svg_file.getroot()
+
+    # make id's unique in order to avoid clashes
+    if idprefix is None:
+        idprefix = 'inst%d_' % fig.id
+    fig_root = util.svg_id_prepend(svg_file.getroot(), prefix=idprefix)
+
+    fig.root = fig_root
+
     return fig
 
 
