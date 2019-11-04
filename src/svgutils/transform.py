@@ -1,6 +1,7 @@
 from lxml import etree
 from copy import deepcopy
 from . import util
+from .util import Unit
 import codecs
 
 try:
@@ -207,6 +208,11 @@ class SVGFigure(object):
     """SVG Figure.
 
     It setups standalone SVG tree. It corresponds to SVG ``<svg>`` tag.
+
+    Parameters
+    ----------
+    width, height : float or str
+        Figure size. If unit is not given, user units (px) are assumed.
     """
     def __init__(self, width=None, height=None):
         self.root = etree.Element(SVG+"svg", nsmap=NSMAP)
@@ -222,9 +228,13 @@ class SVGFigure(object):
         self._height = 0
 
         if width:
+            if not isinstance(width, Unit):
+                width = Unit(width)
             self._width = width.value
             self.width = width
         if height:
+            if not isinstance(height, Unit):
+                height = Unit(height)
             self._height = height.value
             self.height = height
 
