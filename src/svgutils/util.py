@@ -3,37 +3,47 @@ import re
 
 
 def svg_id_prepend(root, prefix):
-    """Append prefix to id attributes and url(#id) references."""
+    """Append prefix to id attributes and (#id) references."""
     root = copy.deepcopy(root)
 
     id_attributes = {}
     # Replace id attributes
     for e in root.findall("*//*[@id]"):
         idvalue = e.attrib['id']
+
         newidvalue = prefix + idvalue
         e.attrib['id'] = newidvalue
 
         id_attributes[idvalue] = newidvalue
 
     # Update references
-    for e in root.xpath("//*[contains(@*, 'url(#')]"):
-        for attr, value in e.attrib.items():
-            matchobj = re.match('url\(#(.*)\)', value)
-            if matchobj and matchobj.groups()[0] in id_attributes:
-                e.attrib[attr] = 'url(#%s)' % id_attributes[matchobj.groups()[
-                    0]]
+    for old_id, new_id in id_attributes.items():
+        # Search for all elements //*  , that have an attr equal to [@*= ...]
+        xpath_str = "//*[@*='#{}']".format(old_id)
+        match_elts = root.xpath(xpath_str)
+
+        # Iterate over all matches
+        for e in match_elts:
+            # find the right attribute
+            for attr, value in e.items():
+                # update the link with the new ID
+                if value == ('#'+old_id):
+                    e.attrib[attr] = '#'+new_id
 
     return root
 
 
 class Unit:
-    """Implementation of SVG units and conversions between them.
+    """
+    Implementation of SVG units and conversions between them.
 
     Parameters
     ----------
     measure : str
         value with unit (for example, '2cm')
+
     """
+
     per_inch = {'px': 90,
                 'cm': 2.54,
                 'mm': 25.4,
@@ -51,7 +61,8 @@ class Unit:
             self.unit = unit
 
     def to(self, unit):
-        """Convert to a given unit.
+        """
+        Convert to a given unit.
 
         Parameters
         ----------
@@ -62,6 +73,7 @@ class Unit:
         -------
         u : Unit
             new Unit object with the requested unit and computed value.
+
         """
         u = Unit("0cm")
         u.value = self.value/self.per_inch[self.unit]*self.per_inch[unit]
