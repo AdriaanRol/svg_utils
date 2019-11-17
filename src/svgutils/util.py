@@ -47,7 +47,8 @@ class Unit:
     per_inch = {'px': 90,
                 'cm': 2.54,
                 'mm': 25.4,
-                'pt': 1
+                'pt': 1,
+                'in': 1,
                 }
 
     def __init__(self, measure):
